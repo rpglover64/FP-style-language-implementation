@@ -1,23 +1,45 @@
+{-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE GADTs #-}
 module Main where
 
-data Expr = I Int | Plus Expr Expr
+data Expr = B Bool | I Int | Plus Expr Expr
 
 data TExpr a where
+  TB :: Bool -> TExpr Bool
   TI :: Int -> TExpr Int
   TPlus :: TExpr Int -> TExpr Int -> TExpr Int
 
-check :: Expr -> TExpr Int
+data Tag a where
+  BTag :: Tag Bool
+  ITag :: Tag Int
+
+data Tagged f = forall a. Tagged (Tag a) (f a)
+
+check :: Expr -> Maybe (Tagged TExpr)
 check = \case
-  I i -> TI i
-  Plus e1 e2 -> TPlus (check e1) (check e2)
+  B b -> Just $ BTag `Tagged` TB b
+  I i -> Just $ ITag `Tagged` TI i
+  Plus e1 e2 -> (ITag `Tagged`) <$> do
+    Tagged ITag te1 <- check e1
+    Tagged ITag te2 <- check e2
+    return $ TPlus te1 te2
 
 eval :: TExpr a -> a
 eval = \case
+  TB b -> b
   TI i -> i
   TPlus e1 e2 -> eval e1 + eval e2
 
-testExpr = (I 1 `Plus` I 2) `Plus` I 3
+testExpr1 = (I 1 `Plus` I 2) `Plus` I 3
+testExpr2 = (I 1 `Plus` I 2) `Plus` B True
+testExpr3 = B True
 
-main = print $ eval $ check testExpr
+printEval :: Maybe (Tagged TExpr) -> IO ()
+printEval = \case
+  Nothing -> print "type error"
+  Just te -> case te of
+    Tagged BTag e -> print $ eval e
+    Tagged ITag e -> print $ eval e
+
+main = mapM_ (printEval . check) [testExpr1, testExpr2, testExpr3]
