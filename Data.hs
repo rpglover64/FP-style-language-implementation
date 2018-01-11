@@ -3,12 +3,13 @@
 {-# LANGUAGE GADTs #-}
 module Data where
 
-data Expr = B Bool | I Int | Plus Expr Expr
+data Expr = B Bool | I Int | Plus Expr Expr | Cond Expr Expr Expr
 
 data TExpr a where
   TB :: Bool -> TExpr Bool
   TI :: Int -> TExpr Int
   TPlus :: TExpr Int -> TExpr Int -> TExpr Int
+  TCond :: TExpr Bool -> TExpr a -> TExpr a -> TExpr a
 
 data Tag a where
   BTag :: Tag Bool
