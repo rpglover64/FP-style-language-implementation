@@ -9,4 +9,7 @@ eval :: TExpr a -> a
 eval = \case
   TB b -> b
   TI i -> i
-  TPlus e1 e2 -> eval e1 + eval e2
+  TPlus e1 e2 -> evalArith (+) e1 e2
+
+evalArith :: (Int -> Int -> Int) -> TExpr Int -> TExpr Int -> Int
+evalArith f e1 e2 = eval e1 `f` eval e2
