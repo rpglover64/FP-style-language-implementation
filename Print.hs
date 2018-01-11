@@ -10,6 +10,8 @@ printExpr = \case
   B b -> show b
   I i -> show i
   Plus e1 e2 -> printBin "+" e1 e2
+  Minus e1 e2 -> printBin "-" e1 e2
+  Times e1 e2 -> printBin "*" e1 e2
   Cond e1 e2 e3 -> printCond e1 e2 e3
 
 printBin :: String -> Expr -> Expr -> String
